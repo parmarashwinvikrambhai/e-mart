@@ -5,6 +5,10 @@ import User from "../models/user-model";
 import bcrypt from "bcrypt"
 import { ZodError } from "zod";
 import jwt from "jsonwebtoken";
+import { updateUserSchema } from "../validators/updateUser-validator";
+import cloudinary from "../config/cloudinary";
+import { changePasswordSchema } from "../validators/change_password-validator";
+
 
 export const createUser = async (req:Request,res:Response) => {
     try {
@@ -87,3 +91,104 @@ export const logoutUser = async (req: Request, res: Response) => {
 
     }
 }
+
+export const getUserProfile = async (req: Request, res: Response) => {
+     try {
+         const userId = (req as any).user.id;
+         const user = await User.findById(userId).select("name email profilePic createdAt");
+         if (!user) {
+             return res.status(404).json({ message: "User not found" });
+         }
+         const createdAtFormatted = new Date(user.createdAt).toLocaleDateString("en-US", {
+             month: "2-digit",
+             day: "2-digit",
+             year: "numeric", 
+         });
+
+         res.json({
+             name: user.name,
+             email: user.email,
+             profilePic: user.profilePic,
+             joinDate: createdAtFormatted
+
+         });
+
+     } catch (error) {
+         return res.status(error instanceof ZodError ? 400 : 500).json({ message: error instanceof ZodError ? error.issues[0].message : "Internal server error..." });
+    }
+}
+
+export const updateUser = async (req: Request, res: Response) => {
+   try {
+       const userId = (req as any).user.id;
+       const validateData = updateUserSchema.safeParse(req.body);
+       if (!validateData.success) {
+           return res.status(400).json({ message: validateData.error.issues[0].message });
+       }
+       const updatedUser = await userRepositories.updateUser(userId, validateData.data);
+       if (!updatedUser) {
+           return res.status(404).json({ message: "User not found" });
+       }
+       res.json({ message: "Profile updated successfully", user: updatedUser });
+   } catch (error) {
+       return res.status(error instanceof ZodError ? 400 : 500).json({ message: error instanceof ZodError ? error.issues[0].message : "Internal server error..." });
+    }
+}
+
+export const updateProfilePic = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.id;
+        if (!req.file) {
+            return res.status(400).json({ message: "Image is required" });
+        }
+
+        const base64 = req.file.buffer.toString("base64");
+        const dataURI = `data:${req.file.mimetype};base64,${base64}`;
+
+        const result = await cloudinary.uploader.upload(dataURI, {
+            folder: "profile_pics",
+        });
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profilePic: result.secure_url },
+            { new: true }
+        ).select("profilePic");
+
+        return res.json({
+            message: "Profile picture updated",
+            user: updatedUser,
+        });
+
+    } catch (error) {
+        return res.status(error instanceof ZodError ? 400 : 500).json({ message: error instanceof ZodError ? error.issues[0].message : "Internal server error..." });
+    }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.id;
+        const validateData = changePasswordSchema.safeParse(req.body);
+        if (!validateData.success) {
+            return res.status(400).json({ message: validateData.error.issues[0].message });
+        }
+        const { Password, newPassword } = validateData.data;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const isMatch = await bcrypt.compare(Password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Password and new password not matched..." });
+        }
+        const hashPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashPassword;
+        await user.save();
+        res.status(200).json({ message: "Password Update successfully..." });
+    } catch (error) {
+        console.error(error);
+        return res.status(error instanceof ZodError ? 400 : 500).json({ message: error instanceof ZodError ? error.issues[0].message : "Internal server error..." });
+    }
+}
+
+

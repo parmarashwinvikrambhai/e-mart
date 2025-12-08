@@ -84,13 +84,15 @@ const Login = () => {
   return (
     <div className="flex justify-center items-center h-[500px]">
       <div className="flex flex-col gap-5">
-        <h1
-          className="text-3xl capitalize flex gap-2 tracking-wide"
-          style={{ fontFamily: "Prata, serif" }}
-        >
-          Login
-        </h1>
-        <div className="w-10 h-0.5 bg-black mb-4"></div>
+        <div className="flex gap-2 items-center justify-center">
+          <h1
+            className="text-3xl capitalize flex gap-2 tracking-wide"
+            style={{ fontFamily: "Prata, serif" }}
+          >
+            Login
+          </h1>
+          <div className="w-10 h-0.5 bg-black"></div>
+        </div>
         <form className="flex flex-col gap-4" onSubmit={handleLogin}>
           {/* Email */}
           <div>

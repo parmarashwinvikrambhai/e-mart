@@ -9,16 +9,23 @@ const createProduct = async (data:IProduct) => {
 const getProduct = async () => {
     return await Product.find().sort({ createdAt: -1 });
 }
+
 const getProductById = async (id:string) => {
     return await Product.findById(id);
 }
+
 const filterProducts = async (filters: any) => {
     return await Product.find(filters);
 };
+
+const deleteProduct = async (id:string) => {
+    return await Product.findByIdAndDelete(id);
+}
 
 export default {
     createProduct,
     getProduct,
     getProductById,
-    filterProducts
+    filterProducts,
+    deleteProduct
 }

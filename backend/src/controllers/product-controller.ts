@@ -5,6 +5,10 @@ import { createProductSchema } from "../validators/product-validator";
 import productRepositories from "../repositories/product-repositories";
 import mongoose from "mongoose";
 
+interface AuthRequest extends Request {
+    user?: { id: string,isAdmin:boolean };
+}
+
 export const createProduct = async (req: Request, res: Response) => {
     try {
         const files = req.files as Express.Multer.File[];
@@ -112,6 +116,33 @@ export const filterProducts = async (req: Request, res: Response) => {
         });
     }
 };
+
+
+export const deleteProduct = async (req: AuthRequest, res: Response) => {
+    try {
+        const user = req.user;
+        if (!user || !user.isAdmin) {
+            return res.status(403).json({ message: "Only admin can delete products." });
+        }
+        const {id} = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid Product ID..." });
+        }
+        const product = await productRepositories.deleteProduct(id);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found..." });
+        }
+        return res.status(200).json({
+            message: "Product deleted successfully",product});
+    } catch (error) {
+        return res.status(error instanceof ZodError ? 400 : 500).json({
+            message:
+                error instanceof ZodError
+                    ? error.issues[0].message
+                    : "Internal server error...",
+        });
+    }
+}
 
 
 

@@ -1,14 +1,13 @@
  import express from "express"
-import { createProduct, getProduct, getProductById, filterProducts } from "../controllers/product-controller";
+import { createProduct, getProduct, getProductById, filterProducts, deleteProduct } from "../controllers/product-controller";
 import { upload } from "../middlewares/upload";
+import { isAuthorizedUser } from "../middlewares/auth-middleware";
 const route = express.Router();
 
 route.post("/create", upload.array("images", 4), createProduct);
-route.get("/", getProduct);
 route.get("/filter", filterProducts);
 route.get("/:id", getProductById);
-
-
-
+route.get("/", getProduct);
+route.delete("/:id",isAuthorizedUser,deleteProduct);
 
 export default route;

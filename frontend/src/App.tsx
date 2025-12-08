@@ -24,6 +24,8 @@ import AddItems from "./pages/admin/AddItems";
 import ListItems from "./pages/admin/ListItems";
 import Orders from "./pages/admin/Orders";
 import type { JSX } from "react";
+import ProfilePage from "./pages/ProfilePage";
+import ChangePassword from "./pages/ChangePassword";
 
 // Protected layout
 const ProtectedRoute = () => {
@@ -98,6 +100,8 @@ function App() {
           <Route path="/orders" element={<Order />} />
           <Route path="/product/:id" element={<Product />} />
           <Route path="/place-order" element={<PlaceOrder />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/change-password" element={<ChangePassword/>} />
         </Route>
 
         {/* Admin pages */}
