@@ -1,12 +1,20 @@
-// product.tsx (Updated with Add to Cart)
+// product.tsx (Updated with Add to Cart and Login Check)
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom"; // useNavigate aur useLocation import kiya
 import SectionHeading from "../components/SectionHeading";
 import ProductItems from "../components/ProductItems";
 import axiosInstance from "../services/apiClient";
-import { useDispatch } from "react-redux"; // Added
-import { setCart } from "../redux/slices/cartSlice"; // Added
+import { useDispatch, useSelector } from "react-redux"; // useSelector import kiya
+import { setCart } from "../redux/slices/cartSlice";
 import toast from "react-hot-toast";
+
+// RootState interface Redux store se leni padegi (assuming it's defined elsewhere, or defining here for temporary use)
+// Temporary RootState definition for Product.tsx:
+interface RootState {
+  auth: {
+    isAuthenticated: boolean;
+  };
+}
 
 interface ProductType {
   _id: string;
@@ -29,7 +37,15 @@ interface RelatedProduct {
 
 export default function Product() {
   const { id } = useParams();
-  const dispatch = useDispatch(); // Initialized useDispatch
+  const navigate = useNavigate(); // useNavigate hook use kiya
+  const location = useLocation(); // useLocation hook use kiya
+  const dispatch = useDispatch();
+
+  // 1. Redux se isAuthenticated status access kiya
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
+
   const [product, setProduct] = useState<ProductType | null>(null);
   const [mainImage, setMainImage] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -77,21 +93,41 @@ export default function Product() {
   }, [id]);
 
   const handleAddToCart = async () => {
+    // 2. CHECK: Agar user logged in nahi hai
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to the cart.", {
+        style: {
+          borderRadius: "8px",
+          background: "#dc2626",
+          color: "#fff",
+          fontWeight: 600,
+          padding: "12px 16px",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+        },
+        iconTheme: { primary: "#fff", secondary: "#dc2626" },
+      });
+      // Login page par redirect karo aur current path ko state mein bhej do
+      navigate("/login", { state: { from: location } });
+      return; // Function ko yahi rok dein
+    }
+
+    // CHECK: Agar size select nahi kiya gaya hai
     if (!selectedSize) {
-     toast.error("Please selct size", {
-       style: {
-         borderRadius: "8px",
-         background: "#dc2626",
-         color: "#fff",
-         fontWeight: 600,
-         padding: "12px 16px",
-         boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-       },
-       iconTheme: { primary: "#fff", secondary: "#dc2626" },
-     });
+      toast.error("Please select size", {
+        style: {
+          borderRadius: "8px",
+          background: "#dc2626",
+          color: "#fff",
+          fontWeight: 600,
+          padding: "12px 16px",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+        },
+        iconTheme: { primary: "#fff", secondary: "#dc2626" },
+      });
       return;
     }
 
+    // Agar user logged in hai aur size selected hai, toh cart API call karo
     try {
       const res = await axiosInstance.post(
         "/cart/add",
@@ -116,10 +152,12 @@ export default function Product() {
         },
         iconTheme: { primary: "#fff", secondary: "#1e40af" },
       });
-      console.log(res.data.cart); 
+      console.log(res.data.cart);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
+      // 401 Unauthorized errors ko humne upar handle kar liya hai,
+      // yahan sirf doosre errors (jaise server down) handle honge.
       alert(err.response?.data?.message || "Failed to add to cart");
     }
   };

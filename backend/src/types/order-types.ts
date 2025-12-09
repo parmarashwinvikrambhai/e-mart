@@ -27,3 +27,8 @@ export interface IOrder {
     createdAt?: Date;
     updatedAt?: Date;
 }
+export interface IUpdateOrder {
+   
+    status: string;
+    
+}

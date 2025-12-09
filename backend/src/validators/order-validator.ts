@@ -21,3 +21,7 @@ export const createOrderSchema = z.object({
     payment: z.boolean().optional().default(false),
     date: z.preprocess((arg) => arg ? new Date(arg as string) : new Date(), z.date())
 });
+export const updateOrderSchema = z.object({
+    status: z.string().optional().default("Processing"),
+
+});

@@ -1,11 +1,10 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "./redux/store";
-
+import type { JSX } from "react";
 // Layouts
 import PublicLayout from "./layouts/PublicLayout";
 import AdminLayout from "./layouts/AdminLayout";
-
 // Pages
 import Home from "./pages/Home";
 import Collection from "./pages/Collection";
@@ -23,38 +22,92 @@ import Dashboard from "./pages/admin/Dashboard";
 import AddItems from "./pages/admin/AddItems";
 import ListItems from "./pages/admin/ListItems";
 import Orders from "./pages/admin/Orders";
-import type { JSX } from "react";
 import ProfilePage from "./pages/ProfilePage";
 import ChangePassword from "./pages/ChangePassword";
-
-// Protected layout
-const ProtectedRoute = () => {
-  const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
-};
-
-// Prevent logged-in users from visiting login/register
-const PublicRoute = ({ children }: { children: JSX.Element }) => {
+import OrderTimeline from "./pages/OrderTimeline";
+// Admin-only Route
+const AdminRoute = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
-
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!user?.isAdmin) return <Navigate to="/" replace />;
+  return <Outlet />;
+};
+// User-only (Protected) Route
+const UserRoute = () => {
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const location = useLocation();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  if (user?.isAdmin) return <Navigate to="/admin" replace />;
+  return <Outlet />;
+};
+// Public Route (login/register)
+const PublicRoute = ({ children }: { children: JSX.Element }) => {
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   if (isAuthenticated) {
     if (user?.isAdmin) return <Navigate to="/admin" replace />;
     return <Navigate to="/" replace />;
   }
-
+  return children;
+};
+// Component to prevent Admin from accessing general public pages
+const PreventAdminAccess = ({ children }: { children: JSX.Element }) => {
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  if (isAuthenticated && user?.isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
   return children;
 };
 
-
-function App() {
+export default function App() {
   return (
     <Routes>
-      {/* Public pages */}
       <Route element={<PublicLayout />}>
+        <Route
+          path="/"
+          element={
+            <PreventAdminAccess>
+              <Home />
+            </PreventAdminAccess>
+          }
+        />
+        <Route
+          path="/collection"
+          element={
+            <PreventAdminAccess>
+              <Collection />
+            </PreventAdminAccess>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <PreventAdminAccess>
+              <About />
+            </PreventAdminAccess>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <PreventAdminAccess>
+              <Contact />
+            </PreventAdminAccess>
+          }
+        />
+        <Route
+          path="/product/:id"
+          element={
+            <PreventAdminAccess>
+              <Product />
+            </PreventAdminAccess>
+          }
+        />
         <Route
           path="/login"
           element={
@@ -88,23 +141,17 @@ function App() {
           }
         />
       </Route>
-
-      {/* Protected pages */}
-      <Route element={<ProtectedRoute />}>
+      <Route element={<UserRoute />}>
         <Route element={<PublicLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/collection" element={<Collection />} />
-          <Route path="/about" element={<About />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/orders" element={<Order />} />
-          <Route path="/product/:id" element={<Product />} />
           <Route path="/place-order" element={<PlaceOrder />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/change-password" element={<ChangePassword/>} />
+          <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/track-order/:orderId" element={<OrderTimeline />} />
         </Route>
-
-        {/* Admin pages */}
+      </Route>
+      <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="add-item" element={<AddItems />} />
@@ -112,11 +159,7 @@ function App() {
           <Route path="orders" element={<Orders />} />
         </Route>
       </Route>
-
-      {/* Default redirect if path not found */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
-
-export default App;

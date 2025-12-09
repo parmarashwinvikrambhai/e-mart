@@ -78,8 +78,9 @@ function AddItems() {
       setSelectedSizes([]);
       setImages([]);
       setBestseller(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      toast.error(error.response?.data?.message || "Failed to Add Product", {
+      toast.error(err.response?.data?.message || "Failed to Add Product", {
         style: {
           borderRadius: "8px",
           background: "#dc2626",
