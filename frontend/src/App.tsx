@@ -24,7 +24,8 @@ import ListItems from "./pages/admin/ListItems";
 import Orders from "./pages/admin/Orders";
 import ProfilePage from "./pages/ProfilePage";
 import ChangePassword from "./pages/ChangePassword";
-import OrderTimeline from "./pages/OrderTimeline";
+import TrackOrderPage from "./pages/TrackOrderPage";
+import FakePaypal from "./pages/FakePaypal";
 // Admin-only Route
 const AdminRoute = () => {
   const { user, isAuthenticated } = useSelector(
@@ -148,7 +149,8 @@ export default function App() {
           <Route path="/place-order" element={<PlaceOrder />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/change-password" element={<ChangePassword />} />
-          <Route path="/track-order/:orderId" element={<OrderTimeline />} />
+          <Route path="/track-order/:orderId" element={<TrackOrderPage />} />
+          <Route path="/paypal" element={<FakePaypal/>} />
         </Route>
       </Route>
       <Route element={<AdminRoute />}>

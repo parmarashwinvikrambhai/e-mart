@@ -18,10 +18,19 @@ export const createOrderSchema = z.object({
     }),
     status: z.string().optional().default("Order Placed"),
     paymentMethod: z.string(),
-    payment: z.boolean().optional().default(false),
+    payment: z.string().optional().default("pending"),
     date: z.preprocess((arg) => arg ? new Date(arg as string) : new Date(), z.date())
 });
 export const updateOrderSchema = z.object({
-    status: z.string().optional().default("Processing"),
-
+    status: z.string().optional(),
+    payment: z.preprocess(
+        (val) => {
+            if (typeof val === "boolean") {
+                return val ? "received" : "pending";  
+            }
+            return val;
+        },
+        z.string()
+    ).optional(),
 });
+

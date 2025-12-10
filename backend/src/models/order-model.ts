@@ -32,8 +32,8 @@ const orderSchema = new mongoose.Schema({
 
     paymentMethod: String,
     payment: { 
-        type: Boolean, 
-        default: false 
+        type: String, 
+        default: "pending"
     },
 
     date: { 

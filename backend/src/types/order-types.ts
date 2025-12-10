@@ -22,13 +22,14 @@ export interface IOrder {
     address: IAddress;
     status: string;           
     paymentMethod: string;
-    payment: boolean;         
+    payment: string;         
     date?: Date;
     createdAt?: Date;
     updatedAt?: Date;
 }
 export interface IUpdateOrder {
    
-    status: string;
+    status?: string;
+    payment?:string;
     
 }

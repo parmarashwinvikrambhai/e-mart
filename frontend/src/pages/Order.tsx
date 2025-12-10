@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../services/apiClient";
-import TrackOrderModal from "./OrderTimeline"; // import modal
+import OrderTimeline from "./OrderTimeline";
 
 interface OrderItem {
   productId: {
@@ -157,10 +157,8 @@ export default function Order() {
 
       {/* Modal */}
       {modalOrderId && (
-        <TrackOrderModal
-          orderId={modalOrderId}
-          onClose={() => setModalOrderId(null)}
-        />
+          <OrderTimeline  orderId={modalOrderId}
+          onClose={() => setModalOrderId(null)}/>
       )}
     </>
   );

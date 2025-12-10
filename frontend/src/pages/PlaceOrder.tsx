@@ -1,22 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ Add this
 import CartTotal from "../components/CartTotal";
-import { assets } from "../assets/assets";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../redux/store";
 import axiosInstance from "../services/apiClient";
 import { setCart } from "../redux/slices/cartSlice";
 import toast from "react-hot-toast";
 
-
-
 export default function PlaceOrder() {
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const dispatch = useDispatch();
-
-  // --------------------------
-  // STATES
-  // --------------------------
-  
+  const navigate = useNavigate(); // ✅ Add this
 
   const [address, setAddress] = useState({
     street: "",
@@ -26,7 +20,7 @@ export default function PlaceOrder() {
     country: "",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState("cod"); 
+  const [paymentMethod, setPaymentMethod] = useState("cod");
   const subtotal = cartItems?.reduce((total, item) => {
     const product = item.productId as unknown as { price: number };
     return total + (product.price || 0) * (item.quantity || 0);
@@ -34,10 +28,14 @@ export default function PlaceOrder() {
   const shippingFee = 10;
   const totalAmount = subtotal + shippingFee;
 
-
   const handlePlaceOrder = async (): Promise<boolean> => {
-    if (!address.street || !address.city || !address.country || !address.state) {
-      toast.error("Delivery fields are Rqquired", {
+    if (
+      !address.street ||
+      !address.city ||
+      !address.country ||
+      !address.state
+    ) {
+      toast.error("Delivery fields are Required", {
         style: {
           borderRadius: "8px",
           background: "#dc2626",
@@ -48,9 +46,26 @@ export default function PlaceOrder() {
         },
         iconTheme: { primary: "#fff", secondary: "#dc2626" },
       });
-      return false; 
+      return false;
     }
 
+    // -------------------
+    // ✅ PayPal Flow
+    // -------------------
+    if (paymentMethod === "paypal") {
+      navigate("/paypal", {
+        state: {
+          items: cartItems,
+          totalAmount: totalAmount,
+          address: address,
+        },
+      });
+      return false; // COD order flow ko abhi execute na kare
+    }
+
+    // -------------------
+    // COD / Normal Flow
+    // -------------------
     try {
       const res = await axiosInstance.post(
         "/order/create-order",
@@ -79,10 +94,10 @@ export default function PlaceOrder() {
         iconTheme: { primary: "#fff", secondary: "#1e40af" },
       });
       dispatch(setCart([]));
-      return true; // order success
+      return true;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error("failed to placed order", {
+      toast.error("Failed to place order", {
         style: {
           borderRadius: "8px",
           background: "#dc2626",
@@ -93,11 +108,11 @@ export default function PlaceOrder() {
         },
         iconTheme: { primary: "#fff", secondary: "#dc2626" },
       });
-      return false; 
+      return false;
     }
   };
 
-return (
+  return (
     <>
       <hr className="border-t border-gray-300" />
       <div className="max-w-6xl mx-auto mt-14 px-4">
@@ -113,8 +128,6 @@ return (
           {/* FORM */}
           <form className="p-4" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-2 gap-4">
-              
-              
               <input
                 type="text"
                 placeholder="Street"
@@ -160,7 +173,6 @@ return (
                   setAddress({ ...address, country: e.target.value })
                 }
               />
-              
             </div>
           </form>
 
@@ -177,22 +189,22 @@ return (
               </div>
 
               <div className="flex gap-6">
-                {/* Razorpay */}
+                {/* PayPal */}
                 <label className="flex items-center gap-3 border border-gray-300 rounded px-5 py-2 cursor-pointer">
                   <input
                     type="radio"
                     name="payment"
-                    checked={paymentMethod === "razorpay"}
-                    onChange={() => setPaymentMethod("razorpay")}
+                    checked={paymentMethod === "paypal"}
+                    onChange={() => setPaymentMethod("paypal")}
                   />
                   <img
-                    src={assets.razorpay_logo}
-                    alt="razorpay"
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK_kZ_jqsE_dKzHu_Eh8ey6LafUWro5sjYfA&s"
+                    alt="paypal"
                     className="h-5"
                   />
                 </label>
 
-                {/* COD (default checked) */}
+                {/* COD (default) */}
                 <label className="flex items-center gap-3 border border-gray-300 rounded px-5 py-2 cursor-pointer">
                   <input
                     type="radio"

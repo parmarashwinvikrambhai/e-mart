@@ -32,7 +32,7 @@ const CheckmarkIcon = () => (
   </svg>
 );
 
-export default function TrackOrderModal({
+function OrderTimeline({
   orderId,
   onClose,
 }: TrackOrderModalProps) {
@@ -203,3 +203,5 @@ export default function TrackOrderModal({
     </div>
   );
 }
+
+export default OrderTimeline;
