@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { ZodError } from "zod";
 import cloudinary from "../config/cloudinary";
-import { createProductSchema } from "../validators/product-validator";
+import { createProductSchema, updateProductSchema } from "../validators/product-validator";
 import productRepositories from "../repositories/product-repositories";
 import mongoose from "mongoose";
 
@@ -88,11 +88,13 @@ export const filterProducts = async (req: Request, res: Response) => {
     try {
         const category = req.query.category?.toString().toLowerCase();
         const type = req.query.type?.toString().toLowerCase();
-        const sort = req.query.sort?.toString(); // new
+        const sort = req.query.sort?.toString();
+        const search = req.query.search?.toString();
 
         const filterQuery: any = {};
         if (category) filterQuery.category = category;
         if (type) filterQuery.subcategory = type;
+        if (search) filterQuery.name = { $regex: search, $options: "i" };
 
         // Fetch filtered products
         let products = await productRepositories.filterProducts(filterQuery);
@@ -144,7 +146,39 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
     }
 }
 
-
-
+export const updateProduct = async (req: AuthRequest, res: Response) => {
+    try {
+        const user = req.user;
+        if (!user || !user.isAdmin) {
+            return res.status(403).json({ message: "Only admin can Update products." });
+        }
+        const validatedData = updateProductSchema.safeParse(req.body);
+        if (!validatedData.success) {
+            return res.status(400).json({
+                message: validatedData.error.issues[0].message,
+            });
+        }
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid Product ID..." });
+        }
+        const product = await productRepositories.updateProduct(id, validatedData.data);
+        
+        if (!product) {
+            return res.status(404).json({ message: "Product not found..." });
+        }
+        return res.status(200).json({
+            message: "Product updated successfully",
+            product
+        });
+    } catch (error) {
+        return res.status(error instanceof ZodError ? 400 : 500).json({
+            message:
+                error instanceof ZodError
+                    ? error.issues[0].message
+                    : "Internal server error...",
+        });
+    }
+}
 
 

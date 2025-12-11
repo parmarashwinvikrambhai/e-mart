@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, Link } from "react-router-dom";
 import  admin1  from "../assets/admin_logo.png";
 import { CalendarArrowDown, PackagePlus, ScrollText } from "lucide-react";
 import { useDispatch } from "react-redux";
@@ -47,8 +47,11 @@ export default function AdminLayout({ children }: Props) {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 p-5 flex flex-col gap-2">
         <div className="ml-4">
-          <img src={admin1} alt="Logo" className="w-36" />
+           <Link to="/dashboard">
+              <img src={admin1} alt="Logo" className="w-36 cursor-pointer" />
+          </Link>
         </div>
+
 
         <NavLink
           to="add-item"

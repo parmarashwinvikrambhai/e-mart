@@ -2,6 +2,7 @@
 import ProductItems from "../components/ProductItems";
 import { useEffect, useState } from "react";
 import axiosInstance from "../services/apiClient";
+import { useSearchParams } from "react-router-dom";
 
 interface Product {
   _id: string;
@@ -20,6 +21,9 @@ export default function Collection() {
   const [sort, setSort] = useState<string>("relevant");
 
 
+  const [searchParams] = useSearchParams();
+  const search = searchParams.get("search");
+
   // Fetch products with filters
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +35,7 @@ export default function Collection() {
         if (category) params.category = category;
         if (type) params.type = type;
         if (sort) params.sort = sort;
+        if (search) params.search = search;
 
         const res = await axiosInstance.get("/product/filter", { params });
 
@@ -43,7 +48,7 @@ export default function Collection() {
     };
 
     fetchData();
-  }, [category, type,sort]);
+  }, [category, type, sort, search]);
 
   return (
     <>

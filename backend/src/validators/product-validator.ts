@@ -11,3 +11,5 @@ export const createProductSchema = z.object({
     bestseller: z.boolean().optional().default(false),
     date: z.preprocess((arg) => arg ? new Date(arg as string) : new Date(), z.date()).optional()
 });
+
+export const updateProductSchema = createProductSchema.partial();

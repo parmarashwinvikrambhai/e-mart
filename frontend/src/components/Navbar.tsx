@@ -1,8 +1,8 @@
 import { assets } from "../assets/assets";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { Handbag, Search, UserRound } from "lucide-react";
+import { Search, ShoppingCart, UserRound } from "lucide-react";
 import { Menu, Transition } from "@headlessui/react";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import axiosInstance from "../services/apiClient";
 import toast from "react-hot-toast";
@@ -25,6 +25,7 @@ interface RootState {
 function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [query, setQuery] = useState("");
 
   // Access the authentication status from the Redux store
   const isAuthenticated = useSelector(
@@ -154,8 +155,14 @@ function Navbar() {
       {/* Search + Icons */}
       <div className="flex gap-5 items-center">
         <div className="relative">
-          <Search className="absolute left-3 top-3 text-gray-400" />
+          <Search 
+            onClick={() => navigate(`/collection?search=${query}`)} 
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-black transition-colors" 
+          />
           <input
+            onChange={(e) => setQuery(e.target.value)}
+            value={query}
+            onKeyDown={(e) => e.key === "Enter" && navigate(`/collection?search=${query}`)}
             type="text"
             className="border border-gray-400 p-2 w-[350px] rounded outline-none pl-10 text-gray-600"
           />
@@ -244,7 +251,7 @@ function Navbar() {
         {/* CART ICON */}
         <div className="relative cursor-pointer">
           <div onClick={() => navigate("/cart")} className="cursor-pointer">
-            <Handbag />
+           <ShoppingCart />
           </div>
 
           <span className="absolute -top-3 -right-3 bg-black text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">

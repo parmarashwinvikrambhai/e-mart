@@ -134,7 +134,7 @@ export default function App() {
           }
         />
         <Route
-          path="/reset-password"
+          path="/reset-password/:token"
           element={
             <PublicRoute>
               <ResetPassword />

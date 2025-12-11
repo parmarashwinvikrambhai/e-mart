@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../services/apiClient";
-import { X } from "lucide-react";
+import { X, Pencil } from "lucide-react";
 
 function ListItems() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -30,6 +32,12 @@ function ListItems() {
       console.error("Failed to delete product:", err);
     }
   };
+  
+  // Edit handler
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEdit = (product: any) => {
+    navigate("/admin/add-item", { state: { product } });
+  }
 
   if (loading) return <p className="p-4">Loading...</p>;
 
@@ -41,7 +49,7 @@ function ListItems() {
         </h1>
 
         {/* Table Header */}
-        <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr] gap-x-4 border border-gray-400 p-2 font-semibold text-gray-600 text-center">
+        <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr] gap-x-4 border border-gray-200 p-2 font-semibold text-gray-600 text-center rounded">
           <span>Image</span>
           <span>Name</span>
           <span>Category</span>
@@ -79,12 +87,18 @@ function ListItems() {
 
             <div className="capitalize">{product.category}</div>
             <div>${product.price}</div>
-            <div className="flex flex-col justify-center items-center gap-1">
+            <div className="flex justify-center items-center gap-8">
+              <div
+                className="text-gray-500 cursor-pointer"
+                onClick={() => handleEdit(product)}
+              >
+                <Pencil size={18} />
+              </div>
               <div
                 className="text-red-500 cursor-pointer"
                 onClick={() => handleDelete(product._id)}
               >
-                <X />
+                <X size={18} />
               </div>
             </div>
           </div>

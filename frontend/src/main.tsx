@@ -7,13 +7,14 @@ import { Provider } from "react-redux";
 import { store, persistor } from "./redux/store.ts";
 import { PersistGate } from "redux-persist/integration/react";
 
+
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-      <BrowserRouter>
-        <App />
-        <Toaster position="top-right" reverseOrder={false} />
-      </BrowserRouter>
+        <BrowserRouter>
+          <App />
+          <Toaster position="top-right" reverseOrder={false} />
+        </BrowserRouter>
     </PersistGate>
   </Provider>
 );

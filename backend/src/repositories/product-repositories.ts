@@ -22,10 +22,15 @@ const deleteProduct = async (id:string) => {
     return await Product.findByIdAndDelete(id);
 }
 
+const updateProduct = async (id:string, data:Partial<IProduct>) => {
+    return await Product.findByIdAndUpdate(id, data, { new: true });
+}
+
 export default {
     createProduct,
     getProduct,
     getProductById,
     filterProducts,
-    deleteProduct
+    deleteProduct,
+    updateProduct
 }

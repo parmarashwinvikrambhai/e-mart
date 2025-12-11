@@ -8,6 +8,11 @@ import jwt from "jsonwebtoken";
 import { updateUserSchema } from "../validators/updateUser-validator";
 import cloudinary from "../config/cloudinary";
 import { changePasswordSchema } from "../validators/change_password-validator";
+import { forgotPasswordSchema } from "../validators/forgot_password-validator";
+import { sendEmail } from "../utils/emailService";
+import crypto from "crypto";
+import { resetPasswordSchema } from "../validators/reset_password-validator";
+
 
 
 export const createUser = async (req:Request,res:Response) => {
@@ -189,6 +194,73 @@ export const changePassword = async (req: Request, res: Response) => {
         console.error(error);
         return res.status(error instanceof ZodError ? 400 : 500).json({ message: error instanceof ZodError ? error.issues[0].message : "Internal server error..." });
     }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const validateData = forgotPasswordSchema.safeParse(req.body);
+        if (!validateData.success) {
+            return res.status(400).json({ message: validateData.error.issues[0].message });
+        }
+        const { email } = validateData.data;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found..." });
+        }
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+        user.resetPasswordToken = hashedToken;
+        user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 4 min expire
+        await user.save();
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        const html = `
+            <h2>Password Reset Request</h2>
+            <p>We received a request to reset your password.</p>
+            <p>Click the link below to reset:</p>
+            <a href="${resetUrl}" target="_blank" 
+                style="background:#4f46e5;color:white;padding:10px 15px;border-radius:6px;text-decoration:none;">
+                Reset Password
+            </a>
+            <p>This link will expire in 4 minutes.</p>
+        `;
+        await sendEmail(user.email,"Reset Your Password - E-mart",html);
+        return res.json({ message: "Reset link sent successfully!" });
+    } catch (error: any) {
+        console.error("Forgot Password Error:", error);
+        return res.status(500).json({
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const validateData = resetPasswordSchema.safeParse(req.body);
+        if (!validateData.success) {
+            return res.status(400).json({ message: validateData.error.issues[0].message });
+        }
+        const {token} = req.params;
+        if(!token){
+            return res.status(404).json({message:"token not found..."});
+        }
+        const {password} = validateData.data;
+        const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+        const user = await User.findOne({ resetPasswordToken: hashedToken, resetPasswordExpires: { $gt: new Date() }});
+        if (!user)
+            return res.status(400).json({ message: "Token invalid or expired" });
+
+        user.password = await bcrypt.hash(password, 10);
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
+
+        await user.save();
+
+        return res.json({ message: "Password reset successful" });
+    } catch (error) {
+        return res.status(500).json({ message: "Server Error" });
+    }
+    
 }
 
 

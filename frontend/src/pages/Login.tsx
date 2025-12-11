@@ -111,42 +111,44 @@ const Login = () => {
             )}
           </div>
 
-          {/* Password */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrors((prev) => ({ ...prev, password: "" }));
-              }}
-              className="border w-[400px] p-2"
-              placeholder="Password"
-            />
-            <span
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-600"
-              onClick={() => setShowPassword((prev) => !prev)}
-            >
-              {showPassword ? <Eye size={22} /> : <EyeOff size={22} />}
-            </span>
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-            )}
-          </div>
+          {/* Password and Links grouped for tighter spacing */}
+          <div className="flex flex-col gap-1">
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({ ...prev, password: "" }));
+                }}
+                className="border w-[400px] p-2"
+                placeholder="Password"
+              />
+              <span
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-600"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <Eye size={22} /> : <EyeOff size={22} />}
+              </span>
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+              )}
+            </div>
 
-          <div className="flex justify-between mt-1">
-            <Link to="/forgot-password" className="text-sm">
-              Forgot your password?
-            </Link>
-            <Link to="/registration" className="text-sm">
-              Create account
-            </Link>
+            <div className="flex justify-between">
+              <Link to="/forgot-password" className="text-sm">
+                Forgot your password?
+              </Link>
+              <Link to="/registration" className="text-sm">
+                Create account
+              </Link>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`border px-6 py-2 bg-black text-white mt-4 ${
+            className={`border px-10 py-2 bg-black text-white mt-4 font-light hover:bg-gray-800 transition-colors w-1/2 mx-auto ${
               loading ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
